@@ -1,11 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat App</title>
-</head>
-<body>
-    Hello from chat app
-</body>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: start;
+        background: #f4f7fb;
+        padding: 20px;
+      }
+
+      .chat-card {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #222;
+      }
+
+      #messages {
+        margin-top: 16px;
+        height: 350px;
+        overflow-y: auto;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .message {
+        max-width: 75%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+      }
+
+      .message.sent {
+        align-self: flex-end;
+        background: #4f46e5;
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.received {
+        align-self: flex-start;
+        background: #e5e7eb;
+        color: #111827;
+        border-bottom-left-radius: 4px;
+      }
+
+      .container {
+        display: flex;
+        gap: 12px;
+      }
+
+      .container input {
+        flex: 1;
+        height: 48px;
+        border: 1px solid #d0d7e2;
+        border-radius: 10px;
+        padding: 0 14px;
+        font-size: 15px;
+        outline: none;
+      }
+
+      .container input:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+      }
+
+      button {
+        height: 48px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 10px;
+        background: #4f46e5;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #4338ca;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="chat-card">
+      <h1>Chat App</h1>
+
+      <form id="chatForm">
+        <div class="container">
+          <input type="text" id="msgInput" placeholder="Enter your message" />
+          <button type="submit">Send</button>
+        </div>
+      </form>
+
+      <div id="messages"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      const socket = io();
+      const msgInput = document.getElementById("msgInput");
+      const messages = document.getElementById("messages");
+      const form = document.getElementById("chatForm");
+
+      // SEND MESSAGE
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const message = msgInput.value.trim();
+        if (!message) return;
+
+        // show instantly as SENT
+        addMessage(message, true);
+
+        socket.emit("user-message", { message });
+
+        msgInput.value = "";
+      });
+
+      // RECEIVE MESSAGE
+      socket.on("message", (data) => {
+        const { message } = data;
+
+        // received messages (others)
+        addMessage(message, false);
+      });
+
+      // helper function
+      function addMessage(text, isSender) {
+        const div = document.createElement("div");
+        div.classList.add("message");
+
+        div.classList.add(isSender ? "sent" : "received");
+        div.innerText = text;
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      }
+    </script>
+  </body>
 </html>
